@@ -1,31 +1,68 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Badge } from '../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { useContractStore } from '../stores/contractStore';
+import { useBlueprintStore } from '../stores/blueprintStore';
 import { formatDate } from '../utils/formatters';
-
-// Install tabs if not installed: npx shadcn-ui@latest add tabs
-
+import { Link } from 'react-router-dom';
 export const Dashboard = () => {
   const { 
     contracts, 
     loading, 
-    fetchContracts 
+    fetchContracts,
+    createContract
   } = useContractStore();
+
+  const { blueprints, fetchBlueprints } = useBlueprintStore();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newContract, setNewContract] = useState({
+    name: '',
+    blueprintId: ''
+  });
 
   useEffect(() => {
     fetchContracts();
+    fetchBlueprints();
   }, []);
+
+  const handleCreateContract = async () => {
+    console.log('Create contract clicked');
+    console.log('Form data:', newContract);
+    
+    if (!newContract.name.trim()) {
+      alert('Please enter a contract name');
+      return;
+    }
+    
+    if (!newContract.blueprintId) {
+      alert('Please select a blueprint');
+      return;
+    }
+
+    try {
+      console.log('Calling createContract API...');
+      await createContract(newContract);
+      console.log('Contract created successfully');
+      setNewContract({ name: '', blueprintId: '' });
+      setShowCreateModal(false);
+    } catch (error) {
+      console.error('Error in create contract:', error);
+      alert('Failed to create contract: ' + (error.message || 'Unknown error'));
+    }
+  };
 
   const getStatusVariant = (status) => {
     switch(status) {
       case 'CREATED': return 'outline';
       case 'APPROVED': return 'secondary';
-      case 'SENT': return 'warning';
-      case 'SIGNED': return 'success';
+      case 'SENT': return 'default';
+      case 'SIGNED': return 'default';
       case 'LOCKED': return 'default';
       case 'REVOKED': return 'destructive';
       default: return 'outline';
@@ -34,17 +71,17 @@ export const Dashboard = () => {
 
   const getStatusColor = (status) => {
     switch(status) {
-      case 'CREATED': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'APPROVED': return 'text-green-600 bg-green-50 border-green-200';
-      case 'SENT': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'SIGNED': return 'text-purple-600 bg-purple-50 border-purple-200';
-      case 'LOCKED': return 'text-gray-600 bg-gray-50 border-gray-200';
-      case 'REVOKED': return 'text-red-600 bg-red-50 border-red-200';
+      case 'CREATED': return 'text-blue-600 bg-blue-50';
+      case 'APPROVED': return 'text-green-600 bg-green-50';
+      case 'SENT': return 'text-yellow-600 bg-yellow-50';
+      case 'SIGNED': return 'text-purple-600 bg-purple-50';
+      case 'LOCKED': return 'text-gray-600 bg-gray-50';
+      case 'REVOKED': return 'text-red-600 bg-red-50';
       default: return '';
     }
   };
 
-  if (loading) {
+  if (loading && contracts.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -64,50 +101,61 @@ export const Dashboard = () => {
             Manage your contracts, track status, and monitor lifecycle transitions
           </p>
         </div>
-        <Button className="gap-2">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          New Contract
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Active Contracts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {contracts.filter(c => ['CREATED', 'APPROVED', 'SENT'].includes(c.status)).length}
+        <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              New Contract
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create New Contract</DialogTitle>
+              <DialogDescription>
+                Create a new contract from an existing blueprint
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Contract Name *</Label>
+                <Input
+                  id="name"
+                  value={newContract.name}
+                  onChange={(e) => setNewContract({...newContract, name: e.target.value})}
+                  placeholder="Enter contract name"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="blueprint">Select Blueprint *</Label>
+                <Select 
+                  value={newContract.blueprintId} 
+                  onValueChange={(value) => setNewContract({...newContract, blueprintId: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a blueprint" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.isArray(blueprints) && blueprints.map(blueprint => (
+                      <SelectItem key={blueprint._id} value={blueprint._id}>
+                        {blueprint.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <p className="text-sm text-gray-600 mt-1">Ready for action</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Pending Review</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {contracts.filter(c => ['CREATED', 'APPROVED'].includes(c.status)).length}
-            </div>
-            <p className="text-sm text-gray-600 mt-1">Awaiting approval</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Completed</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {contracts.filter(c => ['SIGNED', 'LOCKED'].includes(c.status)).length}
-            </div>
-            <p className="text-sm text-gray-600 mt-1">Signed and locked</p>
-          </CardContent>
-        </Card>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateContract} disabled={!newContract.name.trim() || !newContract.blueprintId}>
+                Create Contract
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
@@ -127,7 +175,7 @@ export const Dashboard = () => {
               </div>
               <h3 className="mt-4 text-lg font-medium text-gray-900">No contracts yet</h3>
               <p className="mt-1 text-gray-600">Get started by creating your first contract</p>
-              <Button className="mt-4">Create Contract</Button>
+              <Button className="mt-4" onClick={() => setShowCreateModal(true)}>Create Contract</Button>
             </div>
           ) : (
             <div className="rounded-md border">
@@ -162,13 +210,21 @@ export const Dashboard = () => {
                       </TableCell>
                       <TableCell className="text-gray-600">{formatDate(contract.createdAt)}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button variant="outline" size="sm">View</Button>
-                          {!['LOCKED', 'REVOKED'].includes(contract.status) && (
-                            <Button size="sm">Update</Button>
-                          )}
-                        </div>
-                      </TableCell>
+  <div className="flex justify-end space-x-2">
+    <Button variant="outline" size="sm" asChild>
+      <Link to={`/contracts/${contract._id}`}>
+        View
+      </Link>
+    </Button>
+    {!['LOCKED', 'REVOKED'].includes(contract.status) && (
+      <Button size="sm" asChild>
+        <Link to={`/contracts/${contract._id}`}>
+          Update
+        </Link>
+      </Button>
+    )}
+  </div>
+</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

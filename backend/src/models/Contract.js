@@ -51,12 +51,13 @@ const contractSchema = new mongoose.Schema({
   }
 });
 
+// contractSchema.pre('save', function(next) {
+//   this.updatedAt = Date.now();
+//   next();
+// });
+
 contractSchema.index({ status: 1 });
 contractSchema.index({ blueprintId: 1 });
 contractSchema.index({ createdAt: -1 });
-contractSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
 
 export default mongoose.model('Contract', contractSchema);

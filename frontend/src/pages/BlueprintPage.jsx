@@ -110,39 +110,42 @@ export const BlueprintPage = () => {
         </div>
         
         <div className="divide-y divide-gray-200">
-          {blueprints.map((blueprint) => (
-            <div key={blueprint._id} className="p-4 hover:bg-gray-50">
+          {/* FIXED: Add null check for blueprints */}
+          {Array.isArray(blueprints) && blueprints.map((blueprint) => (
+            <div key={blueprint?._id || Math.random()} className="p-4 hover:bg-gray-50">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-medium text-gray-900">{blueprint.name}</h3>
+                  {/* FIXED: Add null check for blueprint.name */}
+                  <h3 className="font-medium text-gray-900">{blueprint?.name || 'Unnamed Blueprint'}</h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {blueprint.fields.length} field(s) • 
-                    Created: {new Date(blueprint.createdAt).toLocaleDateString()}
+                    {blueprint?.fields?.length || 0} field(s) • 
+                    Created: {blueprint?.createdAt ? new Date(blueprint.createdAt).toLocaleDateString() : 'N/A'}
                   </p>
                 </div>
                 <div className="text-sm text-gray-500">
-                  ID: {blueprint._id.substring(0, 8)}...
+                  ID: {blueprint?._id?.substring(0, 8) || 'N/A'}...
                 </div>
               </div>
               
               <div className="mt-3">
                 <div className="text-sm font-medium text-gray-700 mb-1">Fields:</div>
                 <div className="flex flex-wrap gap-2">
-                  {blueprint.fields.map((field, index) => (
+                  {/* FIXED: Add null check for blueprint.fields */}
+                  {blueprint?.fields?.map((field, index) => (
                     <span 
                       key={index}
                       className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
                     >
-                      {field.label} ({field.type})
+                      {field?.label || 'Unlabeled'} ({field?.type || 'text'})
                     </span>
-                  ))}
+                  )) || []}
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {blueprints.length === 0 && !loading && (
+        {(!Array.isArray(blueprints) || blueprints.length === 0) && !loading && (
           <div className="text-center py-8 text-gray-500">
             No blueprints found. Create your first blueprint.
           </div>

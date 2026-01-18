@@ -2,17 +2,19 @@ import { create } from 'zustand';
 import { blueprintApi } from '../api/blueprintApi.js';
 
 export const useBlueprintStore = create((set, get) => ({
-  
+  // State
   blueprints: [],
   currentBlueprint: null,
   loading: false,
   error: null,
 
+  // Actions
   fetchBlueprints: async () => {
     set({ loading: true, error: null });
     
     try {
       const result = await blueprintApi.getAll();
+      // FIXED: Handle API response properly
       set({ 
         blueprints: result.data || [],
         loading: false 
@@ -47,7 +49,9 @@ export const useBlueprintStore = create((set, get) => ({
     
     try {
       const result = await blueprintApi.create(blueprintData);
-            set(state => ({
+      
+      // FIXED: Add new blueprint to list
+      set(state => ({
         blueprints: [result.data, ...state.blueprints],
         loading: false
       }));
@@ -70,6 +74,7 @@ export const useBlueprintStore = create((set, get) => ({
     set({ error: null });
   },
 
+  // Get blueprint by ID
   getBlueprintById: (id) => {
     const { blueprints } = get();
     return blueprints.find(blueprint => blueprint._id === id);
