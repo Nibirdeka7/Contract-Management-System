@@ -43,9 +43,5 @@ const blueprintSchema = new mongoose.Schema({
   }
 });
 
-blueprintSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
 
 export default mongoose.model('Blueprint', blueprintSchema);
