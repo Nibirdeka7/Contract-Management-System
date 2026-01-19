@@ -7,7 +7,7 @@ The focus of this project is **backend architecture, data modeling, lifecycle en
 
 ---
 
-## 🧠 Architecture Overview
+## Architecture Overview
 
 ### Tech Stack
 - **Frontend**: React (Vite), JavaScript
@@ -31,8 +31,30 @@ The frontend consumes REST APIs exposed by the backend.
 All **business rules and lifecycle validation** are enforced on the backend.
 
 ---
+## Application Screenshots
 
-## 📦 Core Concepts
+### Dashboard
+Overview of all contracts and their current lifecycle status.
+
+![Dashboard Screenshot](./screenshots/Dashboard.png)
+
+---
+
+### Blueprint Builder
+Create reusable contract blueprints with configurable fields.
+
+![Blueprint Builder Screenshot](./screenshots/blueprint-builder.png)
+
+---
+
+### Contract Update & Lifecycle Management
+Fill contract fields and manage lifecycle transitions with backend validation.
+
+![Contract Update Screenshot](./screenshots/contract-update.png)
+
+---
+
+## Core Concepts
 
 ### Blueprint
 A **Blueprint** is a reusable contract template containing configurable fields.
@@ -60,7 +82,7 @@ A **Contract** is an instance created from a Blueprint.
 
 ---
 
-## 🔁 Contract Lifecycle (CRITICAL)
+## Contract Lifecycle (CRITICAL)
 
 Each contract follows a strictly enforced lifecycle:
 
@@ -68,6 +90,50 @@ Each contract follows a strictly enforced lifecycle:
 - CREATED → REVOKED
 - SENT → REVOKED
 
+## Setup Guide
+
+Follow the steps below to run the project locally.
+
+---
+
+###  Prerequisites
+Make sure you have the following installed:
+
+- Node.js (v18 or higher)
+- npm or yarn
+- MongoDB (local or MongoDB Atlas)
+
+---
+
+### 🧩 Clone the Repository
+```bash
+git clone https://github.com/Nibirdeka7/Contract-Management-System.git
+cd contract-management-platform
+
+cd backend
+npm install
+
+# Create environment file
+echo "MONGODB_URI=your_mongo_uri_here" > .env
+echo "PORT=5000" >> .env
+echo "NODE_ENV=development" >> .env
+
+
+npm run dev
+
+# Open new terminal
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start frontend server
+npm run dev
+```
+
+## Check
+Backend: Open http://localhost:5000/health (should return {"status":"OK"})
+Frontend: Open http://localhost:3000 (should show dashboard)
 ## Routes
 
 ```javascript
